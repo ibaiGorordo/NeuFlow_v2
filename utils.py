@@ -1,6 +1,11 @@
+import os
+import requests
+from enum import Enum
 import cv2
 import numpy as np
 import torch
+from tqdm import tqdm
+
 from NeuFlow.backbone_v7 import ConvBlock
 from NeuFlow.neuflow import NeuFlow
 
@@ -8,9 +13,49 @@ UNKNOWN_FLOW_THRESH = 1e7
 SMALLFLOW = 0.0
 LARGEFLOW = 1e8
 
+class ModelType(Enum):
+    MIXED = "neuflow_mixed"
+    SINTEL = "neuflow_sintel"
+    THINGS = "neuflow_things"
 
-def load_model(model_path, device, input_shape=(480, 640), half=False):
+def download(url: str, filename: str):
+    with open(filename, 'wb') as f:
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            total = int(r.headers.get('content-length', 0))
+
+            # tqdm has many interesting parameters. Feel free to experiment!
+            tqdm_params = {
+                'total': total,
+                'miniters': 1,
+                'unit': 'B',
+                'unit_scale': True,
+                'unit_divisor': 1024,
+            }
+            with tqdm(**tqdm_params) as pb:
+                for chunk in r.iter_content(chunk_size=8192):
+                    pb.update(len(chunk))
+                    f.write(chunk)
+
+
+def check_model(model_type: ModelType):
+    model_dir = "models"
+    model_path = f"{model_dir}/{model_type.value}.pth"
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+
+    if not os.path.exists(model_path):
+        print(f"Downloading {model_type.value} model to {model_path}...")
+        url = f"https://github.com/neufieldrobotics/NeuFlow_v2/raw/master/{model_type.value}.pth"
+        download(url, model_path)
+
+    return model_path
+
+
+def load_model(model_type: ModelType, device, input_shape=(480, 640), half=False):
     model = NeuFlow().to(device)
+
+    model_path = check_model(model_type)
 
     checkpoint = torch.load(model_path, map_location=device)
 
@@ -22,8 +67,7 @@ def load_model(model_path, device, input_shape=(480, 640), half=False):
     return model
 
 
-def process_image(image_path, image_width=768, image_height=432, dtype=torch.float32):
-    image = cv2.imread(image_path)
+def process_image(image, image_width=768, image_height=432, dtype=torch.float32):
 
     image = cv2.resize(image, (image_width, image_height))
 
@@ -68,6 +112,8 @@ def fuse_model_conv_and_bn(model):
             delattr(m, "norm1")  # remove batchnorm
             delattr(m, "norm2")  # remove batchnorm
             m.forward = m.forward_fuse  # update forward
+
+    return model
 
 def make_color_wheel():
     """
