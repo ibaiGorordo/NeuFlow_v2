@@ -59,9 +59,13 @@ class CorrBlock:
         b, c, h, w = feature0.shape
         feature0 = feature0.view(b, c, h*w)
         feature1 = feature1.view(b, c, h*w)
+
+        if not isinstance(c, torch.Tensor):
+            c = torch.tensor(c, dtype=torch.float32)
         
         corr = torch.matmul(feature0.transpose(1,2), feature1)
-        corr = corr.view(b*h*w, 1, h, w) / math.sqrt(c)
+        corr = corr.view(b*h*w, 1, h, w)
+        corr = corr / torch.sqrt(c)
 
         corr_pyramid = [corr]
         for i in range(self.levels-1):
