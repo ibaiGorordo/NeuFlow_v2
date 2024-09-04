@@ -30,7 +30,7 @@ with torch.inference_mode():
     flow = cv2.cvtColor(flow, cv2.COLOR_RGB2BGR)
     flow = cv2.resize(flow, (img1.shape[1], img1.shape[0]))
 
-    combined = cv2.vconcat([img1, img2, flow])
+    combined = cv2.addWeighted(img1, 0.5, flow, 0.6, 0)
     cv2.namedWindow("Optical Flow", cv2.WINDOW_NORMAL)
     cv2.imshow("Optical Flow", combined)
     cv2.waitKey(0)
