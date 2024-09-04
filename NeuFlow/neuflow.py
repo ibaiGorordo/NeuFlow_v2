@@ -73,12 +73,9 @@ class NeuFlow(torch.nn.Module,
 
         return features, torch.relu(context)
 
-    def forward(self, img0, img1, iters_s16=1, iters_s8=8):
+    def forward(self, img0, img1, iters_s8=8):
 
         flow_list = []
-
-        img0 /= 255.
-        img1 /= 255.
 
         features_s16, features_s8 = self.backbone(torch.cat([img0, img1], dim=0))
 
@@ -97,21 +94,11 @@ class NeuFlow(torch.nn.Module,
 
         iter_context_s16 = self.init_iter_context_s16
 
-        for i in range(iters_s16):
+        corrs = self.corr_block_s16(corr_pyr_s16, flow0)
 
-            if self.training and i > 0:
-                flow0 = flow0.detach()
-                # iter_context_s16 = iter_context_s16.detach()
+        iter_context_s16, delta_flow = self.refine_s16(corrs, context_s16, iter_context_s16, flow0)
 
-            corrs = self.corr_block_s16(corr_pyr_s16, flow0)
-
-            iter_context_s16, delta_flow = self.refine_s16(corrs, context_s16, iter_context_s16, flow0)
-
-            flow0 = flow0 + delta_flow
-
-            if self.training:
-                up_flow0 = F.interpolate(flow0, scale_factor=16, mode='bilinear') * 16
-                flow_list.append(up_flow0)
+        flow0 = flow0 + delta_flow
 
         flow0 = F.interpolate(flow0, scale_factor=2, mode='nearest') * 2
 
