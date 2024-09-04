@@ -1,3 +1,5 @@
+import time
+
 import torch
 from glob import glob
 import os
@@ -5,7 +7,7 @@ import numpy as np
 import cv2
 from NeuFlow.neuflow import NeuFlow
 from NeuFlow.backbone_v7 import ConvBlock
-from data_utils import flow_viz
+from flow_viz import flow_to_image
 
 
 image_width = 768
@@ -16,7 +18,7 @@ def get_cuda_image(image_path):
 
     image = cv2.resize(image, (image_width, image_height))
 
-    image = torch.from_numpy(image).permute(2, 0, 1).half()
+    image = torch.from_numpy(image).permute(2, 0, 1).float()/255.0
     return image[None].cuda()
 
 
@@ -70,9 +72,8 @@ for m in model.modules():
         m.forward = m.forward_fuse  # update forward
 
 model.eval()
-model.half()
 
-model.init_bhwd(1, image_height, image_width, 'cuda')
+model.init_bhwd(1, image_height, image_width, 'cuda', amp=False)
 
 if not os.path.exists(vis_path):
     os.makedirs(vis_path)
@@ -87,12 +88,13 @@ for image_path_0, image_path_1 in zip(image_path_list[:-1], image_path_list[1:])
     file_name = os.path.basename(image_path_0)
 
     with torch.no_grad():
-
+        start = time.perf_counter()
         flow = model(image_0, image_1)[-1][0]
+        print(f"Inference time: {(time.perf_counter() - start) * 1000:.2f} ms")
 
         flow = flow.permute(1,2,0).cpu().numpy()
         
-        flow = flow_viz.flow_to_image(flow)
+        flow = flow_to_image(flow)
 
         image_0 = cv2.resize(cv2.imread(image_path_0), (image_width, image_height))
 
