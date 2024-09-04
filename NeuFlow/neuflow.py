@@ -15,8 +15,11 @@ from huggingface_hub import PyTorchModelHubMixin
 class NeuFlow(torch.nn.Module,
               PyTorchModelHubMixin,
               repo_url="https://github.com/neufieldrobotics/NeuFlow_v2", license="apache-2.0", pipeline_tag="image-to-image"):
-    def __init__(self):
+    def __init__(self, iters_s16=1, iters_s8=8):
         super(NeuFlow, self).__init__()
+
+        self.iters_s16 = iters_s16
+        self.iters_s8 = iters_s8
 
         self.backbone = backbone_v7.CNNEncoder(config.feature_dim_s16, config.context_dim_s16, config.feature_dim_s8, config.context_dim_s8)
         
@@ -73,7 +76,7 @@ class NeuFlow(torch.nn.Module,
 
         return features, torch.relu(context)
 
-    def forward(self, img0, img1, iters_s8=8):
+    def forward(self, img0, img1):
 
         flow_list = []
 
@@ -93,12 +96,12 @@ class NeuFlow(torch.nn.Module,
         corr_pyr_s16 = self.corr_block_s16.init_corr_pyr(feature0_s16, feature1_s16)
 
         iter_context_s16 = self.init_iter_context_s16
+        for i in range(self.iters_s16):
+            corrs = self.corr_block_s16(corr_pyr_s16, flow0)
 
-        corrs = self.corr_block_s16(corr_pyr_s16, flow0)
+            iter_context_s16, delta_flow = self.refine_s16(corrs, context_s16, iter_context_s16, flow0)
 
-        iter_context_s16, delta_flow = self.refine_s16(corrs, context_s16, iter_context_s16, flow0)
-
-        flow0 = flow0 + delta_flow
+            flow0 = flow0 + delta_flow
 
         flow0 = F.interpolate(flow0, scale_factor=2, mode='nearest') * 2
 
@@ -116,7 +119,7 @@ class NeuFlow(torch.nn.Module,
 
         iter_context_s8 = self.init_iter_context_s8
 
-        for i in range(iters_s8):
+        for i in range(self.iters_s8):
 
             corrs = self.corr_block_s8(corr_pyr_s8, flow0)
 

@@ -52,8 +52,8 @@ def check_model(model_type: ModelType):
     return model_path
 
 
-def load_model(model_type: ModelType, device, input_shape=(480, 640), half=False):
-    model = NeuFlow().to(device)
+def load_model(model_type: ModelType, device, input_shape=(480, 640), iters_s16=1, iters_s8=8, half=False):
+    model = NeuFlow(iters_s16=iters_s16, iters_s8=iters_s8).to(device)
 
     model_path = check_model(model_type)
 

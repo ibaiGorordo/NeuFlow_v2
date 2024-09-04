@@ -6,11 +6,13 @@ from imread_from_url import imread_from_url
 from utils import load_model, process_image, flow_to_image, ModelType
 
 model_type = ModelType.MIXED
+device = torch.device('cuda')
 image_width = 640
 image_height = 480
-device = torch.device('cuda')
+iters_s16=1
+iters_s8=8
 half = False
-model = load_model(model_type, device, (image_height, image_width), half)
+model = load_model(model_type, device, (image_height, image_width), iters_s16, iters_s8, half)
 
 img1 = imread_from_url("https://github.com/princeton-vl/RAFT/blob/master/demo-frames/frame_0016.png?raw=true")
 img2 = imread_from_url("https://github.com/princeton-vl/RAFT/blob/master/demo-frames/frame_0025.png?raw=true")
