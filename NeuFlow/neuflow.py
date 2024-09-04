@@ -118,20 +118,14 @@ class NeuFlow(torch.nn.Module,
 
         for i in range(iters_s8):
 
-            if self.training and i > 0:
-                flow0 = flow0.detach()
-                # iter_context_s8 = iter_context_s8.detach()
-
             corrs = self.corr_block_s8(corr_pyr_s8, flow0)
 
             iter_context_s8, delta_flow = self.refine_s8(corrs, context_s8, iter_context_s8, flow0)
 
             flow0 = flow0 + delta_flow
 
-            if self.training or i == iters_s8 - 1:
-
-                feature0_s1 = self.conv_s8(img0)
-                up_flow0 = self.upsample_s8(feature0_s1, flow0) * 8
-                flow_list.append(up_flow0)
+        feature0_s1 = self.conv_s8(img0)
+        up_flow0 = self.upsample_s8(feature0_s1, flow0) * 8
+        flow_list.append(up_flow0)
 
         return flow_list
