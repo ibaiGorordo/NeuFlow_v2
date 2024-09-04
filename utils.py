@@ -57,7 +57,7 @@ def load_model(model_type: ModelType, device, input_shape=(480, 640), half=False
 
     model_path = check_model(model_type)
 
-    checkpoint = torch.load(model_path, map_location=device)
+    checkpoint = torch.load(model_path, map_location=device, weights_only=True)
 
     model.load_state_dict(checkpoint['model'], strict=True)
     model = fuse_model_conv_and_bn(model)
