@@ -38,4 +38,5 @@ This original model is licensed under Apache 2.0: https://github.com/neufieldrob
 
 ## References
 - NeuFlow v2: https://github.com/neufieldrobotics/NeuFlow_v2
-- Paper: https://arxiv.org/abs/2409.02095
+- Paper: 
+https://arxiv.org/abs/2408.10161
