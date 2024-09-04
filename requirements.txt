@@ -1,0 +1,5 @@
+torch
+torchvision
+opencv-python
+imread_from_url
+cap_from_youtube
