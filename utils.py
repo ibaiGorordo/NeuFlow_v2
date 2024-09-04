@@ -62,14 +62,18 @@ def load_model(model_type: ModelType, device, input_shape=(480, 640), half=False
     model.load_state_dict(checkpoint['model'], strict=True)
     model = fuse_model_conv_and_bn(model)
     model.eval()
+    if half:
+        model.half()
 
     model.init_bhwd(1, input_shape[0], input_shape[1], device, half)
     return model
 
 
-def process_image(image, image_width=768, image_height=432, dtype=torch.float32):
+def process_image(image, image_width=768, image_height=432, half=False):
 
     image = cv2.resize(image, (image_width, image_height))
+
+    dtype = torch.half if half else torch.float
 
     image = torch.from_numpy(image).permute(2, 0, 1).to(dtype) / 255.0
     return image[None].cuda()

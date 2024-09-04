@@ -5,18 +5,18 @@ from imread_from_url import imread_from_url
 
 from utils import load_model, process_image, flow_to_image, ModelType
 
-image_width = 768
-image_height = 432
-
 model_type = ModelType.MIXED
+image_width = 640
+image_height = 480
 device = torch.device('cuda')
-model = load_model(model_type, device, (image_height, image_width))
+half = False
+model = load_model(model_type, device, (image_height, image_width), half)
 
 img1 = imread_from_url("https://github.com/princeton-vl/RAFT/blob/master/demo-frames/frame_0016.png?raw=true")
 img2 = imread_from_url("https://github.com/princeton-vl/RAFT/blob/master/demo-frames/frame_0025.png?raw=true")
 
-input1 = process_image(img1)
-input2 = process_image(img2)
+input1 = process_image(img1, image_width, image_height, half)
+input2 = process_image(img2, image_width, image_height, half)
 
 with torch.inference_mode():
     start = time.perf_counter()
