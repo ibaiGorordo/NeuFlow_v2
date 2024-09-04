@@ -23,8 +23,15 @@ python example_inference.py
 
 ## ONNX Export
 ```bash
-python export_onnx.py
+python export_onnx.py --model mixed --image_width 640 --image_height 480
 ```
+The `export_onnx.py` script supports the following options:  
+- `--model:` Model type (default: `mixed`, choices: `mixed`, `sintel`, `things`)
+- `--image_width:` Image width (default: `640`)
+- `--image_height:` Image height (default: `480`)
+- `--iters_s16:` Number of iterations for s16 (default: `1`)
+- `--iters_s8:` Number of iterations for s8 (default: `8`)
+- `--half:` Use half precision (default: `False`)
 
 ## License
 This original model is licensed under Apache 2.0: https://github.com/neufieldrobotics/NeuFlow_v2/blob/master/LICENSE
