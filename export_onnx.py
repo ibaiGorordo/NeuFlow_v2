@@ -7,8 +7,8 @@ def get_args():
     parser = argparse.ArgumentParser(description='Export model to ONNX')
     parser.add_argument('--model', type=str, default='mixed', choices=['mixed', 'sintel', 'things'], help='Model type')
     parser.add_argument('--half', action='store_true', help='Use half precision')
-    parser.add_argument('--image_width', type=int, default=640, help='Image width')
-    parser.add_argument('--image_height', type=int, default=480, help='Image height')
+    parser.add_argument('--image_width', type=int, default=768, help='Image width')
+    parser.add_argument('--image_height', type=int, default=432, help='Image height')
     parser.add_argument('--iters_s16', type=int, default=1, help='Number of iterations for s16')
     parser.add_argument('--iters_s8', type=int, default=8, help='Number of iterations for s8')
 
